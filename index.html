@@ -182,8 +182,13 @@
                 setTimeout(() => {
                     if (Date.now() - startTime < 1000) {
                         // アプリがインストールされていない場合
-                        appLink.href = 'https://apps.apple.com/app/radio-share/id1234567890';
-                        appLink.textContent = 'App Storeでアプリをダウンロード';
+                        appLink.href = '#';
+                        appLink.textContent = 'アプリをインストールしてください';
+                        appLink.style.backgroundColor = '#666';
+                        appLink.onclick = (e) => {
+                            e.preventDefault();
+                            alert('アプリは現在開発中です。\n近日中にリリース予定です。');
+                        };
                     }
                 }, 1000);
             };
