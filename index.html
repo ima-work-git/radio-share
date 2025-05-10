@@ -154,13 +154,12 @@
     <script>
         // Firebase設定
         const firebaseConfig = {
-            // ここにFirebase設定を追加
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx",
+            authDomain: "radio-share-app.firebaseapp.com",
+            projectId: "radio-share-app",
+            storageBucket: "radio-share-app.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
         };
 
         // Firebase初期化
@@ -175,9 +174,34 @@
         const appLink = document.getElementById('appLink');
         if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
             appLink.style.display = 'block';
+            // アプリがインストールされているかチェック
+            const checkAppInstalled = () => {
+                const startTime = Date.now();
+                window.location.href = 'radioshare://timetable';
+                setTimeout(() => {
+                    if (Date.now() - startTime < 1000) {
+                        // アプリがインストールされていない場合
+                        appLink.href = 'https://apps.apple.com/app/radio-share/id1234567890';
+                        appLink.textContent = 'App Storeでアプリをダウンロード';
+                    }
+                }, 1000);
+            };
+            appLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                checkAppInstalled();
+            });
         }
 
         if (userId) {
+            // ローディング表示
+            const timetable = document.getElementById('timetable');
+            timetable.innerHTML = `
+                <div class="loading">
+                    <div style="margin-bottom: 10px;">番組表を読み込み中...</div>
+                    <div style="font-size: 12px; color: #666;">しばらくお待ちください</div>
+                </div>
+            `;
+
             // Firestoreからデータを取得
             db.collection('sharedTimetables')
                 .doc(userId)
@@ -185,17 +209,21 @@
                 .then((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
-                        displayTimetable(data);
+                        if (data && data.programs && data.programs.length > 0) {
+                            displayTimetable(data);
+                        } else {
+                            showError('共有された番組表にデータがありません。');
+                        }
                     } else {
                         showError('共有された番組表が見つかりません。');
                     }
                 })
                 .catch((error) => {
                     console.error("Error:", error);
-                    showError('データの読み込み中にエラーが発生しました。');
+                    showError('データの読み込み中にエラーが発生しました。\nしばらく時間をおいて再度お試しください。');
                 });
         } else {
-            showError('ユーザーIDが指定されていません。');
+            showError('ユーザーIDが指定されていません。\n正しいURLからアクセスしてください。');
         }
 
         function displayTimetable(data) {
